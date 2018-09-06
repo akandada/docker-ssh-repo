@@ -26,6 +26,8 @@ ENV BASE_PACKAGES="\
   ghostscript \
   openssh-client"
 
+ARG ID_RSA_FILE
+
 RUN echo \
     # Add the packages, with a CDN-breakage fallback if needed
     && apk add --no-cache \
@@ -38,8 +40,7 @@ RUN echo \
     # Install and upgrade Pip
     && easy_install pip \
     && pip install pip==9.0.3 \
-    && if [[ ! -e /usr/bin/pip ]]; then ln -sf /usr/bin/pip2.7 /usr/bin/pip; fi \
-    && echo
+    && if [[ ! -e /usr/bin/pip ]]; then ln -sf /usr/bin/pip2.7 /usr/bin/pip; fi
 
 RUN mkdir -p /key
 
@@ -53,9 +54,7 @@ WORKDIR $HOMEDIR
 # Copying this file over so we can install requirements.txt in one cache-able layer
 COPY requirements.txt $HOMEDIR/
 
-
-ADD id_rsa /tmp/id_rsa
-RUN cat /tmp/id_rsa
+ADD $ID_RSA_FILE /tmp/id_rsa
 RUN eval "$(ssh-agent -s)" && \
     chmod 700 /tmp/id_rsa && \
     ssh-add /tmp/id_rsa && \
